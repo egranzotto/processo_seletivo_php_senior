@@ -1,0 +1,13 @@
+{
+    "name": "usuario/processo-seletivo",
+    "description": "API REST para processo seletivo com PHP puro",
+    "require": {
+      "firebase/php-jwt": "^6.11",
+      "aws/aws-sdk-php": "^3.298"
+    },
+    "autoload": {
+      "psr-4": {
+        "App\\": "app/"
+      }
+    }
+  }

@@ -1,0 +1,886 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "API Processo Seletivo",
+    "version": "1.0.0"
+  },
+  "tags": [
+    { "name": "Autenticação", "description": "Endpoints relacionados à autenticação com JWT" },
+    { "name": "Pessoas", "description": "Consulta de registros da tabela pessoa" },
+    { "name": "Servidores Efetivos", "description": "CRUD para gerenciamento de servidores efetivos" },
+    { "name": "Servidor Temporários", "description": "CRUD de servidores temporários vinculados à tabela pessoa" },
+    { "name": "Unidades", "description": "CRUD da tabela unidade" },
+    { "name": "Lotação", "description": "CRUD da tabela de lotações de servidores" },
+    { "name": "Fotos", "description": "Upload e acesso de imagens no MinIO" },
+    { "name": "Consultas", "description": "Consultas específicas por critérios definidos" }
+  ],
+  "paths": {
+    "/api/login": {
+      "post": {
+        "tags": ["Autenticação"],
+        "summary": "Login do usuário",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "username": {
+                    "type": "string",
+                    "example": "admin"
+                  },
+                  "password": {
+                    "type": "string",
+                    "example": "123456"
+                  }
+                },
+                "required": ["username", "password"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Token JWT gerado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Credenciais inválidas"
+          }
+        }
+      }
+    },
+    "/api/refresh": {
+      "post": {
+        "tags": ["Autenticação"],
+        "summary": "Renova o token JWT",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Novo token JWT gerado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token inválido ou expirado"
+          }
+        }
+      }
+    },
+    "/api/segredo": {
+      "get": {
+        "tags": ["Autenticação"],
+        "summary": "Acesso protegido com token JWT",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Usuário autenticado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "mensagem": {
+                      "type": "string"
+                    },
+                    "usuario": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token inválido ou ausente"
+          }
+        }
+      }
+    },
+    "/api/pessoas": {
+      "get": {
+        "tags": ["Pessoas"],
+        "summary": "Listar pessoas",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Lista de pessoas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "pes_id": { "type": "integer" },
+                      "pes_nome": { "type": "string" },
+                      "pes_data_nascimento": { "type": "string", "format": "date" },
+                      "pes_sexo": { "type": "string" },
+                      "pes_mae": { "type": "string" },
+                      "pes_pai": { "type": "string" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/servidores": {
+      "get": {
+        "tags": ["Servidores Efetivos"],
+        "summary": "Listar servidores efetivos",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "schema": { "type": "integer", "default": 1 },
+            "description": "Número da página"
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": { "type": "integer", "default": 10 },
+            "description": "Quantidade por página"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de servidores",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "pes_id": { "type": "integer" },
+                      "pes_nome": { "type": "string" },
+                      "pes_data_nascimento": { "type": "string", "format": "date" },
+                      "pes_sexo": { "type": "string" },
+                      "se_matricula": { "type": "string" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Servidores Efetivos"],
+        "summary": "Criar servidor efetivo",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "pes_id": { "type": "integer", "example": 1 },
+                  "se_matricula": { "type": "string", "example": "123456" }
+                },
+                "required": ["pes_id", "se_matricula"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Servidor efetivo criado com sucesso" }
+        }
+      }
+    },
+
+    "/api/servidores/{id}": {
+      "get": {
+        "tags": ["Servidores Efetivos"],
+        "summary": "Buscar servidor efetivo por pes_id",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Servidor encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "pes_id": { "type": "integer" },
+                    "pes_nome": { "type": "string" },
+                    "pes_data_nascimento": { "type": "string", "format": "date" },
+                    "pes_sexo": { "type": "string" },
+                    "se_matricula": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
+          "404": { "description": "Servidor não encontrado" }
+        }
+      },
+      "put": {
+        "tags": ["Servidores Efetivos"],
+        "summary": "Atualizar matrícula de servidor efetivo",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "se_matricula": { "type": "string", "example": "654321" }
+                },
+                "required": ["se_matricula"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Servidor efetivo atualizado com sucesso" }
+        }
+      },
+      "delete": {
+        "tags": ["Servidores Efetivos"],
+        "summary": "Deletar vínculo de servidor efetivo",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "Servidor efetivo deletado com sucesso" }
+        }
+      }
+    },
+    "/api/servidoresTemporarios": {
+      "get": {
+        "tags": ["Servidor Temporários"],
+        "summary": "Listar servidores temporários",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Lista de servidores temporários",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "pes_id": { "type": "integer" },
+                      "pes_nome": { "type": "string" },
+                      "pes_data_nascimento": { "type": "string", "format": "date" },
+                      "pes_sexo": { "type": "string" },
+                      "st_data_admissao": { "type": "string", "format": "date" },
+                      "st_data_demissao": { "type": "string", "format": "date" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Servidor Temporários"],
+        "summary": "Criar servidor temporário",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "pes_id": { "type": "integer", "example": 1 },
+                  "st_data_admissao": { "type": "string", "format": "date", "example": "2024-01-01" },
+                  "st_data_demissao": { "type": "string", "format": "date", "example": "2024-12-31" }
+                },
+                "required": ["pes_id", "st_data_admissao", "st_data_demissao"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Servidor temporário criado com sucesso"
+          }
+        }
+      }
+    },
+    "/api/servidoresTemporarios/{id}": {
+      "get": {
+        "tags": ["Servidor Temporários"],
+        "summary": "Buscar servidor temporário por pes_id",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Servidor temporário encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "pes_id": { "type": "integer" },
+                    "pes_nome": { "type": "string" },
+                    "pes_data_nascimento": { "type": "string", "format": "date" },
+                    "pes_sexo": { "type": "string" },
+                    "st_data_admissao": { "type": "string", "format": "date" },
+                    "st_data_demissao": { "type": "string", "format": "date" }
+                  }
+                }
+              }
+            }
+          },
+          "404": { "description": "Servidor temporário não encontrado" }
+        }
+      },
+      "put": {
+        "tags": ["Servidor Temporários"],
+        "summary": "Atualizar datas de servidor temporário",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "st_data_admissao": { "type": "string", "format": "date", "example": "2024-01-01" },
+                  "st_data_demissao": { "type": "string", "format": "date", "example": "2024-12-31" }
+                },
+                "required": ["st_data_admissao", "st_data_demissao"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Servidor temporário atualizado com sucesso" }
+        }
+      },
+      "delete": {
+        "tags": ["Servidor Temporários"],
+        "summary": "Deletar vínculo de servidor temporário",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "Servidor temporário deletado com sucesso" }
+        }
+      }
+    },
+    "/api/unidades": {
+      "get": {
+        "tags": ["Unidades"],
+        "summary": "Listar unidades",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Lista de unidades",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "unid_id": { "type": "integer" },
+                      "unid_nome": { "type": "string" },
+                      "unid_sigla": { "type": "string" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Unidades"],
+        "summary": "Criar nova unidade",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "unid_nome": { "type": "string", "example": "Unidade Central" },
+                  "unid_sigla": { "type": "string", "example": "UC" }
+                },
+                "required": ["unid_nome", "unid_sigla"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Unidade criada com sucesso" }
+        }
+      }
+    },
+    "/api/unidades/{id}": {
+      "get": {
+        "tags": ["Unidades"],
+        "summary": "Buscar unidade por ID",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Unidade encontrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "unid_id": { "type": "integer" },
+                    "unid_nome": { "type": "string" },
+                    "unid_sigla": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
+          "404": { "description": "Unidade não encontrada" }
+        }
+      },
+      "put": {
+        "tags": ["Unidades"],
+        "summary": "Atualizar unidade",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "unid_nome": { "type": "string", "example": "Unidade Atualizada" },
+                  "unid_sigla": { "type": "string", "example": "UA" }
+                },
+                "required": ["unid_nome", "unid_sigla"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Unidade atualizada com sucesso" }
+        }
+      },
+      "delete": {
+        "tags": ["Unidades"],
+        "summary": "Excluir unidade",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "Unidade deletada com sucesso" }
+        }
+      }
+    },
+    "/api/lotacoes": {
+      "get": {
+        "tags": ["Lotação"],
+        "summary": "Listar lotações",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Lista de lotações",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "lot_id": { "type": "integer" },
+                      "pes_id": { "type": "integer" },
+                      "pes_nome": { "type": "string" },
+                      "unid_id": { "type": "integer" },
+                      "unid_nome": { "type": "string" },
+                      "lot_data_lotacao": { "type": "string", "format": "date" },
+                      "lot_data_remocao": { "type": "string", "format": "date" },
+                      "lot_portaria": { "type": "string" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Lotação"],
+        "summary": "Criar lotação",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "pes_id": { "type": "integer" },
+                  "unid_id": { "type": "integer" },
+                  "lot_data_lotacao": { "type": "string", "format": "date" },
+                  "lot_data_remocao": { "type": "string", "format": "date" },
+                  "lot_portaria": { "type": "string" }
+                },
+                "required": ["pes_id", "unid_id", "lot_data_lotacao", "lot_data_remocao", "lot_portaria"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Lotação criada com sucesso" }
+        }
+      }
+    },
+    "/api/lotacoes/{id}": {
+      "get": {
+        "tags": ["Lotação"],
+        "summary": "Buscar lotação por ID",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lotação encontrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "lot_id": { "type": "integer" },
+                    "pes_id": { "type": "integer" },
+                    "pes_nome": { "type": "string" },
+                    "unid_id": { "type": "integer" },
+                    "unid_nome": { "type": "string" },
+                    "lot_data_lotacao": { "type": "string", "format": "date" },
+                    "lot_data_remocao": { "type": "string", "format": "date" },
+                    "lot_portaria": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
+          "404": { "description": "Lotação não encontrada" }
+        }
+      },
+      "put": {
+        "tags": ["Lotação"],
+        "summary": "Atualizar lotação",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "pes_id": { "type": "integer" },
+                  "unid_id": { "type": "integer" },
+                  "lot_data_lotacao": { "type": "string", "format": "date" },
+                  "lot_data_remocao": { "type": "string", "format": "date" },
+                  "lot_portaria": { "type": "string" }
+                },
+                "required": ["pes_id", "unid_id", "lot_data_lotacao", "lot_data_remocao", "lot_portaria"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Lotação atualizada com sucesso" }
+        }
+      },
+      "delete": {
+        "tags": ["Lotação"],
+        "summary": "Deletar lotação",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "Lotação deletada com sucesso" }
+        }
+      }
+    },
+    "/api/uploadFoto": {
+      "post": {
+        "tags": ["Fotos"],
+        "summary": "Upload de uma imagem para o MinIO vinculada a uma pessoa",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "foto": {
+                    "type": "string",
+                    "format": "binary"
+                  },
+                  "pes_id": {
+                    "type": "integer",
+                    "example": 1
+                  }
+                },
+                "required": ["foto", "pes_id"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Upload realizado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "mensagem": { "type": "string" },
+                    "arquivo": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "description": "Erro no upload do arquivo ou pes_id ausente" },
+          "500": { "description": "Falha ao enviar para o MinIO" }
+        }
+      }
+    },
+    "/api/foto/{nome}": {
+      "get": {
+        "tags": ["Fotos"],
+        "summary": "Gerar link temporário de imagem",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "nome",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Link temporário gerado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "url": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
+          "500": { "description": "Erro ao gerar link" }
+        }
+      }
+    },
+    "/api/consulta/servidoresPorUnidade": {
+      "get": {
+        "tags": ["Consultas"],
+        "summary": "Listar servidores efetivos lotados em uma unidade",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "unid_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "ID da unidade"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de servidores efetivos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "pes_nome": { "type": "string" },
+                      "idade": { "type": "integer" },
+                      "unidade_lotacao": { "type": "string" },
+                      "fp_hash": { "type": "string" },
+                      "foto_link": { "type": "string", "format": "uri" }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "description": "unid_id ausente ou inválido" }
+        }
+      }
+    },
+    "/api/consulta/enderecoFuncional": {
+      "get": {
+        "tags": ["Consultas"],
+        "summary": "Consultar o endereço funcional da unidade de um servidor pelo nome",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "nome",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "Parte do nome do servidor efetivo"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Endereço funcional encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "pes_nome": { "type": "string" },
+                      "unid_nome": { "type": "string" },
+                      "endereco_id": { "type": "integer" },
+                      "logradouro": { "type": "string" },
+                      "numero": { "type": "string" },
+                      "bairro": { "type": "string" },
+                      "cidade": { "type": "string" },
+                      "estado": { "type": "string" },
+                      "cep": { "type": "string" }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "description": "Parâmetro nome inválido" }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  }
+}
