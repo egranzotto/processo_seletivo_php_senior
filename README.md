@@ -1,5 +1,8 @@
 # 📘 API REST - Processo Seletivo - PHP Senior
 
+**Vaga: Desenvolvedor PHP - Sênior**
+**Inscrição:**
+
 Este projeto é uma API REST desenvolvida em PHP puro, utilizando Docker, PostgreSQL e MinIO para armazenamento de arquivos. O objetivo é atender aos requisitos funcionais definidos para um processo seletivo técnico.
 
 ---
