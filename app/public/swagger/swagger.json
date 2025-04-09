@@ -89,36 +89,6 @@
         }
       }
     },
-    "/api/segredo": {
-      "get": {
-        "tags": ["Autenticação"],
-        "summary": "Acesso protegido com token JWT",
-        "security": [{ "bearerAuth": [] }],
-        "responses": {
-          "200": {
-            "description": "Usuário autenticado com sucesso",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "mensagem": {
-                      "type": "string"
-                    },
-                    "usuario": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Token inválido ou ausente"
-          }
-        }
-      }
-    },
     "/api/pessoas": {
       "get": {
         "tags": ["Pessoas"],
