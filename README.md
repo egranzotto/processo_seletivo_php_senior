@@ -1,7 +1,14 @@
 # 📘 API REST - Processo Seletivo - PHP Senior
 
 - **Vaga:** Desenvolvedor PHP - Sênior
-- **Inscrição:** 
+- **Inscrição:** 9961
+
+## 👤 Autor
+
+**Eduardo Granzotto**  
+E-mail: [egranzotto@gmail.com](mailto:egranzotto@gmail.com)  
+GitHub: [@egranzotto](https://github.com/egranzotto)
+
 
 Este projeto é uma API REST desenvolvida em PHP puro, utilizando Docker, PostgreSQL e MinIO para armazenamento de arquivos. O objetivo é atender aos requisitos funcionais definidos para um processo seletivo técnico.
 
@@ -105,14 +112,6 @@ http://localhost:8080/swagger
 - `GET /api/foto/{nome}` → gerar link temporário da imagem
 - `GET /api/consulta/servidoresPorUnidade?unid_id=` → listar servidores com foto
 - `GET /api/consulta/enderecoFuncional?nome=` → buscar endereço funcional da unidade por nome
-
----
-
-## 👤 Autor
-
-**Eduardo Granzotto**  
-E-mail: [egranzotto@gmail.com](mailto:egranzotto@gmail.com)  
-GitHub: [@egranzotto](https://github.com/egranzotto)
 
 ---
 
