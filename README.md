@@ -1,4 +1,4 @@
-# 📘 API REST - Processo Seletivo
+# 📘 API REST - Processo Seletivo - PHP Senior
 
 Este projeto é uma API REST desenvolvida em PHP puro, utilizando Docker, PostgreSQL e MinIO para armazenamento de arquivos. O objetivo é atender aos requisitos funcionais definidos para um processo seletivo técnico.
 
@@ -25,8 +25,8 @@ Este projeto é uma API REST desenvolvida em PHP puro, utilizando Docker, Postgr
 
 ### 1. Clone o repositório
 ```bash
-git clone https://github.com/egranzotto/processo_seletivo.git
-cd processo_seletivo
+git clone https://github.com/egranzotto/processo_seletivo_php_senior.git
+cd processo_seletivo_php_senior
 ```
 
 ### 2. Suba os containers com Docker Compose
